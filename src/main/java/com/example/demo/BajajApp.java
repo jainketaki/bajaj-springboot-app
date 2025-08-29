@@ -31,8 +31,8 @@ public class BajajApp implements CommandLineRunner {
 
         Map<String, String> body = new HashMap<>();
         body.put("name", "John Doe"); // <-- replace with your details
-        body.put("regNo", "REG12347");
-        body.put("email", "john@example.com");
+        body.put("regNo", "REG12347"); // <-- replace with your reg no
+        body.put("email", "john@example.com"); // <-- replace with your email
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -40,9 +40,7 @@ public class BajajApp implements CommandLineRunner {
 
         ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
 
-        System.out.println("✅ Webhook Response: " + response.getBody());
-
-        // Extract webhook & token
+        // ✅ Extract webhook & token after response
         String webhookUrl = (String) response.getBody().get("webhook");
         String accessToken = (String) response.getBody().get("accessToken");
 
@@ -59,6 +57,11 @@ public class BajajApp implements CommandLineRunner {
                 "GROUP BY e1.EMP_ID, e1.FIRST_NAME, e1.LAST_NAME, d.DEPARTMENT_NAME " +
                 "ORDER BY e1.EMP_ID DESC;";
 
+        // ✅ Debug logs AFTER variables are declared
+        System.out.println("🔗 Webhook URL = " + webhookUrl);
+        System.out.println("🔑 Access Token = " + accessToken);
+        System.out.println("📄 Final Query = " + finalQuery);
+
         // Step 3: Submit final query
         Map<String, String> answer = new HashMap<>();
         answer.put("finalQuery", finalQuery);
@@ -68,9 +71,14 @@ public class BajajApp implements CommandLineRunner {
         authHeaders.setBearerAuth(accessToken);
 
         HttpEntity<Map<String, String>> answerRequest = new HttpEntity<>(answer, authHeaders);
-        ResponseEntity<String> submitResponse = restTemplate.postForEntity(webhookUrl, answerRequest, String.class);
 
-        System.out.println("📤 Submission Response: " + submitResponse.getBody());
+        try {
+            ResponseEntity<String> submitResponse =
+                    restTemplate.postForEntity(webhookUrl, answerRequest, String.class);
+            System.out.println("📤 Submission Response: " + submitResponse.getBody());
+        } catch (Exception ex) {
+            System.out.println("❌ Error while submitting query:");
+            ex.printStackTrace();
+        }
     }
 }
-
